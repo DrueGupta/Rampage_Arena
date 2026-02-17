@@ -32,7 +32,7 @@ protected:
 	int specialOneCost;
 	string specialTwoName;
 	int specialTwoCost;
-	int durabilityLossPercent;
+	double durabilityLossPercent;
 public:
 	Player(string name)
 	{
@@ -58,15 +58,15 @@ public:
 	{
 		return this->specialTwoCost;
 	}
-	bool startTurn()
+	virtual bool startTurn()
 	{
 
 	}
-	bool endTurn()
+	virtual bool endTurn()
 	{
 
 	}
-	bool takeDamage(int damage, string type)
+	virtual bool takeDamage(int damage, string type)
 	{
 		//armor
 		if (type == "PHYS" && this->armor > 0)
@@ -104,9 +104,9 @@ public:
 		//damage resistance
 		return target->takeDamage(damage, "PHYS");
 	}
-	void die()
+	virtual void die()
 	{
-
+		cout << this->name << " has shedded their mortal coil" << endl;
 	}
 	void displayStatus()
 	{
@@ -119,16 +119,34 @@ public:
 		}
 		cout << "]" << endl;
 	}
-	bool processEffects()
+	void removeEffect(int index)
 	{
-
+		for (int i = index; i < this->effects.size() - 1; i++)
+		{
+			this -> effects[i] = this->effects[i + 1];
+		}
+		this->effects.pop_back();
 	}
-	bool specialOne(Player* target)
+	bool processEffects(bool& loseTurn)
 	{
-
+		for (int i = 0; i < this->effects.size(); i++)
+		{
+			if (this->effects[i].effectType == "BURN")
+			{
+				cout << this->name << " burns for" << this->effects[i].effectDMG << endl;
+				this->takeDamage(this->effects[i].effectDMG, "FIRE");
+				this->effects[i].duration--;
+			}
+		}
+		for (int i = 0; i < this->effects.size(); i++)
+		{
+			if (this->effects[i].duration <= 0)
+			{
+				this->removeEffect(i);
+				i--;
+			}
+		}
 	}
-	bool specialTwo(Player* target)
-	{
-
-	}
+	virtual bool specialOne(Player* target) = 0;
+	virtual bool specialTwo(Player* target) = 0;
 };
