@@ -58,7 +58,43 @@ public:
 	{
 		return this->specialTwoCost;
 	}
-	virtual bool startTurn()
+	string getResourceName()
+	{
+		return this->resourceName;
+	}
+	int getHealth()
+	{
+		return this->health;
+	}
+	vector<Effect>& getEffects()
+	{
+		return this->effects;
+	}
+	int getCritChance()
+	{
+		return this->critChance;
+	}
+	void setCritChance(int c)
+	{
+		this->critChance = c;
+	}
+	int getToHit()
+	{
+		return this->toHit;
+	}
+	void setToHit(int h)
+	{
+		this->toHit = h;
+	}
+	int getDodge()
+	{
+		return this->dodge;
+	}
+	void setDodge(int d)
+	{
+		this->dodge = d;
+	}
+	virtual void startTurn()
 	{
 
 	}
@@ -73,6 +109,10 @@ public:
 		{
 			cout << this->name << "'s armor reduced damage by" << this->armor << endl;
 			damage -= this->armor;
+			if (damage < 0)
+			{
+				damage = 0;
+			}
 			this->armor -= (damage * this->durabilityLossPercent);
 			if (armor <= 0)
 				cout << this->name << "'s armor has broken and shattered into inumberable pieces" << endl;
@@ -111,8 +151,8 @@ public:
 	void displayStatus()
 	{
 		cout << left << setw(18) << this->name << "Health: " << right << setw(5) << this->health
-			<< this->resourceName << ": " << setw(5) << this->resource <<
-			"Armor: " << setw(5) << this->armor << "    [ ";
+			<< "  " << this->resourceName << ": " << setw(5) << this->resource <<
+			"  Armor: " << setw(5) << this->armor << "    [ ";
 		for (Effect effect : this->effects)
 		{
 			cout << effect.effectType << " ";
@@ -123,19 +163,33 @@ public:
 	{
 		for (int i = index; i < this->effects.size() - 1; i++)
 		{
-			this -> effects[i] = this->effects[i + 1];
+			this->effects[i] = this->effects[i + 1];
 		}
 		this->effects.pop_back();
 	}
 	bool processEffects(bool& loseTurn)
 	{
+		bool dead = false;
 		for (int i = 0; i < this->effects.size(); i++)
 		{
 			if (this->effects[i].effectType == "BURN")
 			{
 				cout << this->name << " burns for" << this->effects[i].effectDMG << endl;
-				this->takeDamage(this->effects[i].effectDMG, "FIRE");
+				dead = this->takeDamage(this->effects[i].effectDMG, "FIRE");
 				this->effects[i].duration--;
+			}
+			else if (this->effects[i].effectType == "MORT")
+			{
+				this->effects[i].duration--;
+				if (this->effects[i].duration == 0)
+				{
+					cout << this->name << " succumbs to the ancient spell, wihtering away into nothing." << endl;
+					return true;
+				}
+				else
+				{
+					cout << "The timer ticks. " << this->name << "'s impending doom inches ever closer..." << endl;
+				}
 			}
 		}
 		for (int i = 0; i < this->effects.size(); i++)
@@ -146,6 +200,7 @@ public:
 				i--;
 			}
 		}
+		return dead;
 	}
 	virtual bool specialOne(Player* target) = 0;
 	virtual bool specialTwo(Player* target) = 0;
